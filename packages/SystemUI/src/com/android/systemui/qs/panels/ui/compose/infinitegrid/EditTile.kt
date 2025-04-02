@@ -362,6 +362,8 @@ fun DefaultEditTileGrid(
                         }
                     }
                 }
+
+                Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.systemBars))
             }
         }
     }
@@ -673,7 +675,6 @@ private fun AvailableTileGrid(
                 }
             }
         }
-        Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.systemBars))
     }
 }
 
