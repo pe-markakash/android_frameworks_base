@@ -122,7 +122,7 @@ constructor(
     private lateinit var airplaneModeSummaryTextView: TextView
     private lateinit var mobileDataToggle: MaterialSwitch
     private lateinit var wifiToggle: MaterialSwitch
-    private lateinit var shareWifiButton: Button
+    private lateinit var shareWifiButton: LinearLayout
     private lateinit var airplaneModeButton: Button
     private var alertDialog: AlertDialog? = null
     private var canChangeWifiState = false
