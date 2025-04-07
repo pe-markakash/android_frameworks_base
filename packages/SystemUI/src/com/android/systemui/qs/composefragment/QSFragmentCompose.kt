@@ -122,6 +122,7 @@ import com.android.systemui.Flags
 import com.android.systemui.Flags.notificationShadeBlur
 import com.android.systemui.brightness.ui.compose.BrightnessSliderContainer
 import com.android.systemui.brightness.ui.compose.ContainerColors
+import com.android.systemui.compose.modifiers.sysUiResTagContainer
 import com.android.systemui.compose.modifiers.sysuiResTag
 import com.android.systemui.dagger.qualifiers.Main
 import com.android.systemui.dump.DumpManager
@@ -288,7 +289,9 @@ constructor(
                                     this@repeatWhenAttached.lifecycle
                             }
                         )
-                        setContent { this@QSFragmentCompose.Content() }
+                        setContent {
+                            this@QSFragmentCompose.Content(Modifier.sysUiResTagContainer())
+                        }
                     }
                 }
             }
@@ -346,7 +349,7 @@ constructor(
     }
 
     @Composable
-    private fun Content() {
+    private fun Content(modifier: Modifier = Modifier) {
         PlatformTheme {
             ProvideShortcutHelperIndication(interactionsConfig = interactionsConfig()) {
                 // TODO(b/389985793): Make sure that there is no coroutine work or recompositions
@@ -354,7 +357,8 @@ constructor(
                 if (alwaysCompose || viewModel.isQsVisibleAndAnyShadeExpanded) {
                     Box(
                         modifier =
-                            Modifier.thenIf(alwaysCompose) {
+                            modifier
+                                .thenIf(alwaysCompose) {
                                     Modifier.layout { measurable, constraints ->
                                         measurable.measure(constraints).run {
                                             layout(width, height) {
