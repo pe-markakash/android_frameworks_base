@@ -155,6 +155,7 @@ import com.android.systemui.res.R
 import com.android.systemui.util.LifecycleFragment
 import com.android.systemui.util.animation.UniqueObjectHostView
 import com.android.systemui.util.asIndenting
+import com.android.systemui.util.children
 import com.android.systemui.util.printSection
 import com.android.systemui.util.println
 import com.android.systemui.util.settings.SystemSettings
@@ -1350,7 +1351,17 @@ private fun MediaObject(
                         )
                 }
             },
-            update = { view -> view.update() },
+            update = { view ->
+                view.update()
+                // Update layout params if host view bounds are higher than its child.
+                val height = mediaHost.hostView.height
+                val width = mediaHost.hostView.width
+                mediaHost.hostView.children.forEach { child ->
+                    if (child is FrameLayout && (height > child.height || width > child.width)) {
+                        child.layoutParams = FrameLayout.LayoutParams(width, height)
+                    }
+                }
+            },
             onReset = {},
         )
     }
