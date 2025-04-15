@@ -146,6 +146,7 @@ constructor(
     @VisibleForTesting internal lateinit var adapter: InternetAdapter
     @VisibleForTesting internal var wifiEntriesCount: Int = 0
     @VisibleForTesting internal var hasMoreWifiEntries: Boolean = false
+    @VisibleForTesting internal var hasSeeAllClicked: Boolean = false
     private lateinit var context: Context
     private lateinit var coroutineScope: CoroutineScope
 
@@ -568,7 +569,12 @@ constructor(
     }
 
     private fun onClickSeeMoreButton(view: View?) {
-        internetDetailsContentController.launchNetworkSetting(view)
+        if (QsWifiConfig.isEnabled) {
+            hasSeeAllClicked = true
+            updateContent(shouldUpdateMobileNetwork = false)
+        } else {
+            internetDetailsContentController.launchNetworkSetting(view)
+        }
     }
 
     private fun handleWifiToggleClicked(isChecked: Boolean) {
@@ -863,19 +869,24 @@ constructor(
         if (QsWifiConfig.isEnabled) {
             addNetworkButton.visibility = View.VISIBLE
         }
-        val wifiListMaxCount = getWifiListMaxCount()
-        if (adapter.itemCount > wifiListMaxCount) {
-            hasMoreWifiEntries = true
+        if (QsWifiConfig.isEnabled && internetContent.showAllWifiInList) {
+            hasMoreWifiEntries = false
+            adapter.setShowAllWifi()
+            seeAllLayout.visibility = View.GONE
+        } else {
+            val wifiListMaxCount = getWifiListMaxCount()
+            if (adapter.itemCount > wifiListMaxCount) {
+                hasMoreWifiEntries = true
+            }
+            adapter.setMaxEntriesCount(wifiListMaxCount)
+            val wifiListMinHeight = wifiNetworkHeight * wifiListMaxCount
+            if (wifiRecyclerView.minimumHeight != wifiListMinHeight) {
+                wifiRecyclerView.minimumHeight = wifiListMinHeight
+            }
+            seeAllLayout.visibility = if (hasMoreWifiEntries) View.VISIBLE else View.INVISIBLE
         }
-        adapter.setMaxEntriesCount(wifiListMaxCount)
-        val wifiListMinHeight = wifiNetworkHeight * wifiListMaxCount
-        if (wifiRecyclerView.minimumHeight != wifiListMinHeight) {
-            wifiRecyclerView.minimumHeight = wifiListMinHeight
-        }
-
         wifiRecyclerView.invalidateItemDecorations()
         wifiRecyclerView.visibility = View.VISIBLE
-        seeAllLayout.visibility = if (hasMoreWifiEntries) View.VISIBLE else View.INVISIBLE
     }
 
     @MainThread
@@ -994,6 +1005,7 @@ constructor(
             isWifiScanEnabled = internetDetailsContentController.isWifiScanEnabled(),
             activeAutoSwitchNonDdsSubId =
                 internetDetailsContentController.getActiveAutoSwitchNonDdsSubId(),
+            showAllWifiInList = hasSeeAllClicked,
         )
     }
 
@@ -1144,6 +1156,7 @@ constructor(
         val hasActiveSubIdOnDds: Boolean = false,
         val isDeviceLocked: Boolean = false,
         val isWifiScanEnabled: Boolean = false,
+        val showAllWifiInList: Boolean = false,
         val activeAutoSwitchNonDdsSubId: Int = SubscriptionManager.INVALID_SUBSCRIPTION_ID,
     )
 
