@@ -3290,10 +3290,8 @@ public final class NotificationPanelViewController implements
     @Override
     public void updateExpansionAndVisibility() {
         if (!SceneContainerFlag.isEnabled()) {
-            boolean isExpanded = isExpanded();
             mShadeExpansionStateManager.onPanelExpansionChanged(
-                    mExpandedFraction, isExpanded, isTracking());
-            mQsController.setPanelExpanded(isExpanded);
+                    mExpandedFraction, isExpanded(), isTracking());
         }
         updateVisibility();
     }
