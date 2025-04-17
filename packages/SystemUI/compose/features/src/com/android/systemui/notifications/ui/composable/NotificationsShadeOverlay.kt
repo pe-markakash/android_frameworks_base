@@ -101,6 +101,8 @@ constructor(
         mediaHost.get().expansion =
             if (usingCollapsedLandscapeMedia && isLandscape()) COLLAPSED else EXPANDED
 
+        val isFullWidth = isFullWidthShade()
+
         OverlayShade(
             panelElement = NotificationsShade.Elements.Panel,
             alignmentOnWideScreens = Alignment.TopStart,
@@ -113,13 +115,14 @@ constructor(
                     }
                 OverlayShadeHeader(
                     viewModel = headerViewModel,
+                    showClock = !isFullWidth,
                     modifier = Modifier.element(NotificationsShade.Elements.StatusBar),
                 )
             },
         ) {
             Box {
                 Column {
-                    if (isFullWidthShade()) {
+                    if (isFullWidth) {
                         val burnIn = rememberBurnIn(keyguardClockViewModel)
 
                         with(clockSection) {

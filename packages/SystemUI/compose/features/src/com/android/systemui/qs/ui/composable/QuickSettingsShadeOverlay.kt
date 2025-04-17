@@ -143,6 +143,7 @@ constructor(
                 header = {
                     OverlayShadeHeader(
                         viewModel = quickSettingsContainerViewModel.shadeHeaderViewModel,
+                        showClock = true,
                         modifier = Modifier.element(QuickSettingsShade.Elements.StatusBar),
                     )
                 },

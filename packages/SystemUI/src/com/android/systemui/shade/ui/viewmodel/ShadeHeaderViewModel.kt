@@ -28,7 +28,6 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import com.android.app.tracing.coroutines.launchTraced as launch
-import com.android.compose.animation.scene.OverlayKey
 import com.android.systemui.battery.BatteryMeterViewController
 import com.android.systemui.kairos.ExperimentalKairosApi
 import com.android.systemui.kairos.KairosNetwork
@@ -93,22 +92,6 @@ constructor(
     val createBatteryMeterViewController:
         (ViewGroup, StatusBarLocation) -> BatteryMeterViewController =
         batteryMeterViewControllerFactory::create
-
-    val showClock: Boolean by
-        hydrator.hydratedStateOf(
-            traceName = "showClock",
-            initialValue =
-                shouldShowClock(
-                    isShadeLayoutWide = shadeModeInteractor.isShadeLayoutWide.value,
-                    overlays = sceneInteractor.currentOverlays.value,
-                ),
-            source =
-                combine(
-                    shadeModeInteractor.isShadeLayoutWide,
-                    sceneInteractor.currentOverlays,
-                    ::shouldShowClock,
-                ),
-        )
 
     val notificationsChipHighlight: HeaderChipHighlight by
         hydrator.hydratedStateOf(
@@ -288,11 +271,6 @@ constructor(
             override fun foregroundColor(colorScheme: ColorScheme): Color =
                 colorScheme.onPrimaryContainer
         }
-    }
-
-    private fun shouldShowClock(isShadeLayoutWide: Boolean, overlays: Set<OverlayKey>): Boolean {
-        // Notifications shade on narrow layout renders its own clock. Hide the header clock.
-        return isShadeLayoutWide || Overlays.NotificationsShade !in overlays
     }
 
     private fun getFormatFromPattern(pattern: String?): DateFormat {
