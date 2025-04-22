@@ -66,7 +66,7 @@ import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.whenever
 
-@EnableFlags(android.app.Flags.FLAG_MODES_UI)
+@EnableFlags(android.app.Flags.FLAG_MODES_UI, android.app.Flags.FLAG_MODES_UI_TILE_REACTIVATES_LAST)
 @SmallTest
 @RunWith(AndroidJUnit4::class)
 @RunWithLooper(setAsMainLooper = true)
@@ -192,7 +192,7 @@ class ModesTileTest : SysuiTestCase() {
             underTest.handleUpdateState(tileState, model)
 
             assertThat(tileState.state).isEqualTo(Tile.STATE_ACTIVE)
-            assertThat(tileState.secondaryLabel).isEqualTo("2 modes are active")
+            assertThat(tileState.label).isEqualTo("2 Modes")
         }
 
     @Test
@@ -210,6 +210,6 @@ class ModesTileTest : SysuiTestCase() {
             underTest.handleUpdateState(tileState, null)
 
             assertThat(tileState.state).isEqualTo(Tile.STATE_ACTIVE)
-            assertThat(tileState.secondaryLabel).isEqualTo("2 modes are active")
+            assertThat(tileState.label).isEqualTo("2 Modes")
         }
 }
