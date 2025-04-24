@@ -76,7 +76,6 @@ import com.android.systemui.common.ui.compose.windowinsets.LocalDisplayCutout
 import com.android.systemui.common.ui.compose.windowinsets.LocalScreenCornerRadius
 import com.android.systemui.compose.modifiers.sysuiResTag
 import com.android.systemui.kairos.ExperimentalKairosApi
-import com.android.systemui.kairos.buildSpec
 import com.android.systemui.privacy.OngoingPrivacyChip
 import com.android.systemui.res.R
 import com.android.systemui.scene.shared.model.Scenes
@@ -119,9 +118,6 @@ object ShadeHeader {
     }
 
     object Colors {
-        val ColorScheme.shadeHeaderText: Color
-            get() = Color.White
-
         val ColorScheme.onScrimDim: Color
             get() = Color.DarkGray
     }
@@ -234,7 +230,7 @@ fun ContentScope.ExpandedShadeHeader(
             }
         }
         Column(
-            verticalArrangement = Arrangement.Bottom,
+            verticalArrangement = Arrangement.spacedBy(space = 16.dp, alignment = Alignment.Bottom),
             modifier =
                 Modifier.fillMaxWidth()
                     .defaultMinSize(minHeight = ShadeHeader.Dimensions.ExpandedHeight),
@@ -255,9 +251,9 @@ fun ContentScope.ExpandedShadeHeader(
                     )
                 }
             }
-            Spacer(modifier = Modifier.width(5.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.element(ShadeHeader.Elements.ExpandedContent),
             ) {
                 VariableDayDate(
@@ -266,7 +262,6 @@ fun ContentScope.ExpandedShadeHeader(
                     textColor = colorAttr(android.R.attr.textColorPrimary),
                     modifier = Modifier.widthIn(max = 90.dp),
                 )
-                Spacer(modifier = Modifier.weight(1f))
                 SystemIconChip {
                     StatusIcons(
                         viewModel = viewModel,
@@ -780,18 +775,10 @@ private fun ContentScope.PrivacyChip(
 
 private fun shouldUseExpandedFormat(state: TransitionState): Boolean {
     return when (state) {
-        is TransitionState.Idle -> {
-            state.currentScene == Scenes.QuickSettings
-        }
+        is TransitionState.Idle -> state.currentScene == Scenes.QuickSettings
         is TransitionState.Transition -> {
-            ((state.isTransitioning(Scenes.Shade, Scenes.QuickSettings) ||
-                state.isTransitioning(Scenes.Gone, Scenes.QuickSettings) ||
-                state.isTransitioning(Scenes.Lockscreen, Scenes.QuickSettings)) &&
-                state.progress >= 0.5) ||
-                ((state.isTransitioning(Scenes.QuickSettings, Scenes.Shade) ||
-                    state.isTransitioning(Scenes.QuickSettings, Scenes.Gone) ||
-                    state.isTransitioning(Scenes.QuickSettings, Scenes.Lockscreen)) &&
-                    state.progress <= 0.5)
+            (state.isTransitioning(to = Scenes.QuickSettings) && state.progress >= 0.5) ||
+                (state.isTransitioning(from = Scenes.QuickSettings) && state.progress <= 0.5)
         }
     }
 }
