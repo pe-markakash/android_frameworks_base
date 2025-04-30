@@ -365,7 +365,8 @@ constructor(
 
 
         // Set click listeners for Wi-Fi related views
-        wifiToggle.setOnClickListener {
+        turnWifiOnLayout.setOnClickListener {
+            wifiToggle.toggle()
             val isChecked = wifiToggle.isChecked
             handleWifiToggleClicked(isChecked)
         }
@@ -396,8 +397,9 @@ constructor(
             internetDetailsContentController.connectCarrierNetwork()
         }
 
-        // Mobile data toggle
-        mobileDataToggle.setOnClickListener {
+        // Mobile data toggle entry
+        turnMobileOnLayout.setOnClickListener {
+            mobileDataToggle.toggle()
             val isChecked = mobileDataToggle.isChecked
             if (!isChecked && shouldShowMobileDialog()) {
                 mobileDataToggle.isChecked = true
@@ -992,8 +994,8 @@ constructor(
         connectedWifiListLayout.setOnClickListener(null)
         secondaryMobileNetworkLayout?.setOnClickListener(null)
         seeAllLayout.setOnClickListener(null)
-        wifiToggle.setOnCheckedChangeListener(null)
-        mobileDataToggle.setOnCheckedChangeListener(null)
+        turnWifiOnLayout.setOnClickListener(null)
+        turnMobileOnLayout.setOnClickListener(null)
         shareWifiButton.setOnClickListener(null)
         addNetworkButton.setOnClickListener(null)
         airplaneModeButton.setOnClickListener(null)
