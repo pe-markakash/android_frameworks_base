@@ -119,6 +119,8 @@ fun InteractiveTileContainer(
     val badgeIconAlpha by transition.animateFloat { state -> if (state == Removable) 1f else 0f }
     val selectionBorderAlpha by
         transition.animateFloat { state -> if (state == Selected) 1f else 0f }
+    val isIdle = transition.currentState == transition.targetState
+    val isDraggable = tileState == Selected
 
     Box(
         modifier.resizable(tileState == Selected, resizingState).selectionBorder(
@@ -133,6 +135,7 @@ fun InteractiveTileContainer(
         MinimumInteractiveSizeComponent(
             angle = { decorationAngle },
             offset = { decorationOffset },
+            excludeSystemGesture = isIdle && isDraggable,
         ) {
             Box(
                 Modifier.fillMaxSize()
@@ -146,7 +149,7 @@ fun InteractiveTileContainer(
                     }
                     .graphicsLayer { this.alpha = decorationAlpha }
                     .anchoredDraggable(
-                        enabled = tileState == Selected,
+                        enabled = isDraggable,
                         state = resizingState.anchoredDraggableState,
                         orientation = Orientation.Horizontal,
                     )
@@ -246,6 +249,7 @@ private fun MinimumInteractiveSizeComponent(
     angle: () -> Float,
     offset: () -> Offset,
     modifier: Modifier = Modifier,
+    excludeSystemGesture: Boolean = false,
     content: @Composable BoxScope.() -> Unit = {},
 ) {
     // Use a higher zIndex than the tile to draw over it, and manually create the touch target
@@ -256,7 +260,6 @@ private fun MinimumInteractiveSizeComponent(
         modifier =
             modifier
                 .zIndex(2f)
-                .systemGestureExclusion { Rect(Offset.Zero, it.size.toSize()) }
                 .layout { measurable, constraints ->
                     val size = minTouchTargetSize.roundToPx()
                     val placeable = measurable.measure(Constraints.fixed(size, size))
@@ -269,6 +272,9 @@ private fun MinimumInteractiveSizeComponent(
                             position.y.roundToInt() - placeable.height / 2,
                         )
                     }
+                }
+                .thenIf(excludeSystemGesture) {
+                    Modifier.systemGestureExclusion { Rect(Offset.Zero, it.size.toSize()) }
                 },
         content = content,
     )
