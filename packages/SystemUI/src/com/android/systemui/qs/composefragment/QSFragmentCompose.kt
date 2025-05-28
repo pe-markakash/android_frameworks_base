@@ -884,7 +884,8 @@ constructor(
                                                             viewModel.expansionState.progress >
                                                                 QSFragmentComposeViewModel
                                                                     .QS_LISTENING_THRESHOLD &&
-                                                            !viewModel.isEditing
+                                                            !viewModel.isEditing &&
+                                                            !viewModel.isStackScrollerOverscrolling
                                                     }
                                                 }
                                                 .let { state -> { state.value } }
