@@ -35,6 +35,7 @@ fun BuildScope.MobileIconInteractorKairosAdapter(
 ): MobileIconInteractor =
     with(kairosImpl) {
         MobileIconInteractorKairosAdapter(
+            subscriptionId = subscriptionId,
             tableLogBuffer = tableLogBuffer,
             activity = activity.toColdConflatedFlow(kairosNetwork),
             mobileIsDefault = mobileIsDefault.toColdConflatedFlow(kairosNetwork),
@@ -58,6 +59,7 @@ fun BuildScope.MobileIconInteractorKairosAdapter(
     }
 
 private class MobileIconInteractorKairosAdapter(
+    override val subscriptionId: Int,
     override val tableLogBuffer: TableLogBuffer,
     override val activity: Flow<DataActivityModel>,
     override val mobileIsDefault: Flow<Boolean>,
