@@ -35,10 +35,8 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Arrangement.spacedBy
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -67,10 +65,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalResources
-import androidx.compose.ui.res.dimensionResource
-import androidx.compose.ui.res.integerResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
@@ -95,7 +90,9 @@ import com.android.systemui.haptics.msdl.qs.TileHapticsViewModel
 import com.android.systemui.haptics.msdl.qs.TileHapticsViewModelFactoryProvider
 import com.android.systemui.lifecycle.rememberViewModel
 import com.android.systemui.qs.flags.QsDetailedView
+import com.android.systemui.qs.panels.ui.compose.infinitegrid.CommonTileDefaults.TileCornerRadius
 import com.android.systemui.qs.panels.ui.compose.infinitegrid.CommonTileDefaults.TileEndPadding
+import com.android.systemui.qs.panels.ui.compose.infinitegrid.CommonTileDefaults.TileHeight
 import com.android.systemui.qs.panels.ui.compose.infinitegrid.CommonTileDefaults.TileStartPadding
 import com.android.systemui.qs.panels.ui.compose.infinitegrid.CommonTileDefaults.longPressLabel
 import com.android.systemui.qs.panels.ui.viewmodel.AccessibilityUiState
@@ -170,96 +167,89 @@ fun Tile(
                 tileHapticsViewModelFactoryProvider.getHapticsViewModelFactory()?.create(tile)
             }
 
-        BoxWithConstraints {
-            val spacing = dimensionResource(R.dimen.qs_tile_margin_horizontal)
-            val tileHeight = (maxWidth / 2) - (spacing / 2)
+        // TODO(b/361789146): Draw the shapes instead of clipping
+        val tileShape = RoundedCornerShape(TileCornerRadius)
+        val animatedColor by animateColorAsState(colors.background, label = "QSTileBackgroundColor")
+        val animatedAlpha by animateFloatAsState(colors.alpha, label = "QSTileAlpha")
 
-            // TODO(b/361789146): Draw the shapes instead of clipping
-            val tileShape = RoundedCornerShape(
-                if (iconOnly) maxWidth / 2
-                else tileHeight / 2
-            )
-            val animatedColor by animateColorAsState(colors.background, label = "QSTileBackgroundColor")
-            val animatedAlpha by animateFloatAsState(colors.alpha, label = "QSTileAlpha")
+        val context = LocalContext.current
+        val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        val EFFECT_CLICK = VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK)
 
-            val context = LocalContext.current
-            val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-            val EFFECT_CLICK = VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK)
-
-            TileExpandable(
-                color = { animatedColor },
-                shape = tileShape,
-                squishiness = squishiness,
-                hapticsViewModel = hapticsViewModel,
-                modifier =
-                    modifier
-                        .borderOnFocus(color = MaterialTheme.colorScheme.secondary, tileShape.topEnd)
-                        .fillMaxWidth()
-                        .graphicsLayer { alpha = animatedAlpha },
-            ) { expandable ->
-                val longClick: (() -> Unit)? =
-                    {
-                            hapticsViewModel?.setTileInteractionState(
-                                TileHapticsViewModel.TileInteractionState.LONG_CLICKED
-                            )
-                            tile.onLongClick(expandable)
-                        }
-                        .takeIf { uiState.handlesLongClick }
-                TileContainer(
-                    onClick = {
-                        if (iconOnly && uiState.handlesSecondaryClick) {
-                            vibrator.vibrate(EFFECT_CLICK)
-                            tile.onSecondaryClick()
-                        } else {
-                            var hasDetails = false
-                            if (QsDetailedView.isEnabled) {
-                                hasDetails = detailsViewModel?.onTileClicked(tile.spec) == true
-                            }
-                            if (!Flags.msdlFeedback()) {
-                                vibrator.vibrate(EFFECT_CLICK)
-                            }
-                            if (!hasDetails) {
-                                // For those tile's who doesn't have a detailed view, process with their
-                                // `onClick` behavior.
-                                tile.onClick(expandable)
-                                hapticsViewModel?.setTileInteractionState(
-                                    TileHapticsViewModel.TileInteractionState.CLICKED
-                                )
-                            }
-                        }
-                    },
-                    onLongClick = longClick,
-                    uiState = uiState,
-                    iconOnly = iconOnly,
-                ) {
-                    val iconProvider: Context.() -> Icon = { getTileIcon(icon = icon) }
-                    if (iconOnly) {
-                        SmallTileContent(
-                            iconProvider = iconProvider,
-                            color = colors.icon,
-                            modifier = Modifier.align(Alignment.Center),
+        TileExpandable(
+            color = { animatedColor },
+            shape = tileShape,
+            squishiness = squishiness,
+            hapticsViewModel = hapticsViewModel,
+            modifier =
+                modifier
+                    .borderOnFocus(color = MaterialTheme.colorScheme.secondary, tileShape.topEnd)
+                    .fillMaxWidth()
+                    .graphicsLayer { alpha = animatedAlpha },
+        ) { expandable ->
+            val longClick: (() -> Unit)? =
+                {
+                        hapticsViewModel?.setTileInteractionState(
+                            TileHapticsViewModel.TileInteractionState.LONG_CLICKED
                         )
-                    } else {
-                        val secondaryClick: (() -> Unit)? =
-                            {
-                                    vibrator.vibrate(EFFECT_CLICK)
-                                    tile.onSecondaryClick()
-                                }
-                                .takeIf { uiState.handlesSecondaryClick }
-                        LargeTileContent(
-                            label = uiState.label,
-                            secondaryLabel = uiState.secondaryLabel,
-                            iconProvider = iconProvider,
-                            sideDrawable = uiState.sideDrawable,
-                            colors = colors,
-                            iconShape = tileShape,
-                            toggleClick = secondaryClick,
-                            onLongClick = longClick,
-                            accessibilityUiState = uiState.accessibilityUiState,
-                            squishiness = squishiness,
-                            isVisible = isVisible,
-                        )
+                        tile.onLongClick(expandable)
                     }
+                    .takeIf { uiState.handlesLongClick }
+            TileContainer(
+                onClick = {
+                    if (iconOnly && uiState.handlesSecondaryClick) {
+                        vibrator.vibrate(EFFECT_CLICK)
+                        tile.onSecondaryClick()
+                    } else {
+                        var hasDetails = false
+                        if (QsDetailedView.isEnabled) {
+                            hasDetails = detailsViewModel?.onTileClicked(tile.spec) == true
+                        }
+                        if (!Flags.msdlFeedback()) {
+                            vibrator.vibrate(EFFECT_CLICK)
+                        }
+                        if (!hasDetails) {
+                            // For those tile's who doesn't have a detailed view, process with their
+                            // `onClick` behavior.
+                            tile.onClick(expandable)
+                            hapticsViewModel?.setTileInteractionState(
+                                TileHapticsViewModel.TileInteractionState.CLICKED
+                            )
+                        }
+                    }
+                },
+                onLongClick = longClick,
+                uiState = uiState,
+                iconOnly = iconOnly,
+            ) {
+                val iconProvider: Context.() -> Icon = { getTileIcon(icon = icon) }
+                if (iconOnly) {
+                    SmallTileContent(
+                        iconProvider = iconProvider,
+                        color = colors.icon,
+                        modifier = Modifier.align(Alignment.Center),
+                    )
+                } else {
+                    val iconShape = RoundedCornerShape(TileCornerRadius)
+                    val secondaryClick: (() -> Unit)? =
+                        {
+                                vibrator.vibrate(EFFECT_CLICK)
+                                tile.onSecondaryClick()
+                            }
+                            .takeIf { uiState.handlesSecondaryClick }
+                    LargeTileContent(
+                        label = uiState.label,
+                        secondaryLabel = uiState.secondaryLabel,
+                        iconProvider = iconProvider,
+                        sideDrawable = uiState.sideDrawable,
+                        colors = colors,
+                        iconShape = iconShape,
+                        toggleClick = secondaryClick,
+                        onLongClick = longClick,
+                        accessibilityUiState = uiState.accessibilityUiState,
+                        squishiness = squishiness,
+                        isVisible = isVisible,
+                    )
                 }
             }
         }
@@ -292,34 +282,20 @@ fun TileContainer(
     iconOnly: Boolean,
     content: @Composable BoxScope.() -> Unit,
 ) {
-    BoxWithConstraints {
-        val spacing = dimensionResource(R.dimen.qs_tile_margin_horizontal)
-        val tileHeight = with(LocalDensity.current) {
-            (maxWidth.toPx() / 2) - (spacing.toPx() / 2)
-        }
-        val aspect = if (iconOnly) {
-            1f
-        } else {
-            with(LocalDensity.current) {
-                maxWidth.toPx() / tileHeight
-            }
-        }
-
-        Box(
-            modifier = 
-                Modifier.fillMaxWidth()
-                    .aspectRatio(aspect)
-                    .tileCombinedClickable(
-                        onClick = onClick,
-                        onLongClick = onLongClick,
-                        accessibilityUiState = uiState.accessibilityUiState,
-                        iconOnly = iconOnly,
-                    )
-                    .sysuiResTag(if (iconOnly) TEST_TAG_SMALL else TEST_TAG_LARGE)
-                    .thenIf(!iconOnly) { Modifier.largeTilePadding(uiState) }, // Icon tiles are center aligned
-            content = content,
-        )
-    }
+    Box(
+        modifier =
+            Modifier.height(TileHeight)
+                .fillMaxWidth()
+                .tileCombinedClickable(
+                    onClick = onClick,
+                    onLongClick = onLongClick,
+                    accessibilityUiState = uiState.accessibilityUiState,
+                    iconOnly = iconOnly,
+                )
+                .sysuiResTag(if (iconOnly) TEST_TAG_SMALL else TEST_TAG_LARGE)
+                .thenIf(!iconOnly) { Modifier.largeTilePadding(uiState) }, // Icon tiles are center aligned
+        content = content,
+    )
 }
 
 @Composable
@@ -330,23 +306,21 @@ fun LargeStaticTile(
 ) {
     val colors = TileDefaults.getColorForState(uiState = uiState, iconOnly = false)
 
-    BoxWithConstraints(
+    Box(
         modifier
-            .fillMaxWidth()
-            .aspectRatio(2f)
+            .clip(RoundedCornerShape(TileCornerRadius))
             .background(colors.background)
+            .height(TileHeight)
             .largeTilePadding(uiState)
     ) {
-        Box(modifier.clip(RoundedCornerShape(maxWidth / 2))) {
-            LargeTileContent(
-                label = uiState.label,
-                secondaryLabel = "",
-                iconProvider = { getTileIcon(icon = iconProvider) },
-                sideDrawable = null,
-                colors = colors,
-                squishiness = { 1f },
-            )
-        }
+        LargeTileContent(
+            label = uiState.label,
+            secondaryLabel = "",
+            iconProvider = { getTileIcon(icon = iconProvider) },
+            sideDrawable = null,
+            colors = colors,
+            squishiness = { 1f },
+        )
     }
 }
 
