@@ -30,7 +30,6 @@ import android.os.UserManager
 import android.provider.Settings
 import androidx.annotation.VisibleForTesting
 import com.android.app.tracing.coroutines.launchTraced as launch
-import com.android.app.tracing.coroutines.runBlockingTraced as runBlocking
 import com.android.internal.statusbar.IStatusBarService
 import com.android.systemui.broadcast.BroadcastDispatcher
 import com.android.systemui.common.coroutine.ChannelExt.trySendWithFailureLogging
@@ -64,6 +63,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 /**

@@ -18,7 +18,6 @@ package com.android.systemui.communal.data.backup
 
 import android.content.Context
 import androidx.annotation.WorkerThread
-import com.android.app.tracing.coroutines.runBlockingTraced as runBlocking
 import com.android.systemui.communal.data.db.CommunalDatabase
 import com.android.systemui.communal.nano.CommunalHubState
 import java.io.File
@@ -27,6 +26,7 @@ import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 
 /** Utilities for communal backup and restore. */
 class CommunalBackupUtils(private val context: Context) {
