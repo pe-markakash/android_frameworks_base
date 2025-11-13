@@ -2221,3 +2221,13 @@ flag {
     description: "Enables the multi-user WiFi configuration UI in Interent detailed tiles. This flag depends on qs_tile_detailed_view flag"
     bug: "406548883"
 }
+
+flag {
+   name: "qs_compose_fragment_early_expansion"
+   namespace: "systemui"
+   description: "Start expansion from QQS into QS early when touching the shade."
+   bug: "414856236"
+   metadata {
+     purpose: PURPOSE_BUGFIX
+   }
+}
