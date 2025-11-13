@@ -46,8 +46,6 @@ import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.android.app.tracing.coroutines.launchTraced as launch
-import com.android.compose.PlatformSliderDefaults
 import com.android.compose.animation.scene.ContentScope
 import com.android.compose.animation.scene.ElementKey
 import com.android.compose.animation.scene.UserAction
@@ -82,11 +80,8 @@ import com.android.systemui.statusbar.notification.stack.shared.model.ShadeScrim
 import com.android.systemui.statusbar.notification.stack.shared.model.ShadeScrimShape
 import com.android.systemui.statusbar.notification.stack.ui.view.NotificationScrollView
 import com.android.systemui.statusbar.notification.stack.ui.viewmodel.NotificationsPlaceholderViewModel
-import com.android.systemui.volume.panel.component.volume.ui.composable.VolumeSlider
 import dagger.Lazy
 import javax.inject.Inject
-import kotlinx.coroutines.awaitCancellation
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 
 @SysUISingleton
@@ -95,7 +90,7 @@ class QuickSettingsShadeOverlay
 constructor(
     private val actionsViewModelFactory: QuickSettingsShadeOverlayActionsViewModel.Factory,
     private val contentViewModelFactory: QuickSettingsShadeOverlayContentViewModel.Factory,
-    quickSettingsContainerViewModelFactory: QuickSettingsContainerViewModel.Factory,
+    private val quickSettingsContainerViewModelFactory: QuickSettingsContainerViewModel.Factory,
     private val notificationStackScrollView: Lazy<NotificationScrollView>,
     private val notificationsPlaceholderViewModelFactory: NotificationsPlaceholderViewModel.Factory,
 ) : Overlay {
@@ -108,19 +103,8 @@ constructor(
 
     override val userActions: Flow<Map<UserAction, UserActionResult>> = actionsViewModel.actions
 
-    private val quickSettingsContainerViewModel by lazy {
-        quickSettingsContainerViewModelFactory.create(
-            supportsBrightnessMirroring = true,
-            expansion = COLLAPSED,
-        )
-    }
-
     override suspend fun activate(): Nothing {
-        coroutineScope {
-            launch { quickSettingsContainerViewModel.activate() }
-            launch { actionsViewModel.activate() }
-        }
-        awaitCancellation()
+        actionsViewModel.activate()
     }
 
     @Composable
@@ -128,6 +112,13 @@ constructor(
         val contentViewModel =
             rememberViewModel("QuickSettingsShadeOverlayContent") {
                 contentViewModelFactory.create()
+            }
+        val quickSettingsContainerViewModel =
+            rememberViewModel("QuickSettingsShadeOverlayContainer") {
+                quickSettingsContainerViewModelFactory.create(
+                    supportsBrightnessMirroring = true,
+                    expansion = COLLAPSED,
+                )
             }
         val hunPlaceholderViewModel =
             rememberViewModel("QuickSettingsShadeOverlayPlaceholder") {
@@ -283,31 +274,6 @@ fun ContentScope.QuickSettingsLayout(
                         ),
                     modifier = Modifier.fillMaxWidth(),
                 )
-            }
-
-            val volumeSliderViewModel = viewModel.volumeSliderViewModel
-            if (volumeSliderViewModel != null) {
-                val volumeSliderState by volumeSliderViewModel.slider.collectAsStateWithLifecycle()
-
-                Box(
-                    Modifier.systemGestureExclusionInShade(
-                        enabled = { layoutState.transitionState is TransitionState.Idle }
-                    )
-                ) {
-                    VolumeSlider(
-                        modifier = Modifier.fillMaxWidth(),
-                        showLabel = false,
-                        state = volumeSliderState,
-                        onValueChange = { newValue: Float ->
-                            volumeSliderViewModel.onValueChanged(volumeSliderState, newValue)
-                        },
-                        onValueChangeFinished = { volumeSliderViewModel.onValueChangeFinished() },
-                        onIconTapped = { volumeSliderViewModel.toggleMuted(volumeSliderState) },
-                        sliderColors = PlatformSliderDefaults.defaultPlatformSliderColors(),
-                        hapticsViewModelFactory =
-                            volumeSliderViewModel.getSliderHapticsViewModelFactory(),
-                    )
-                }
             }
 
             Box {
