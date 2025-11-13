@@ -41,13 +41,7 @@ constructor(@ShadeDisplayAware private val resources: Resources, val theme: Reso
                 } else {
                     QSTileState.ActivationState.INACTIVE
                 }
-            if (android.app.Flags.modesUiTileReactivatesLast()) {
-                label = getLabel(data, resources)
-                secondaryLabel = getSecondaryLabel(data, resources)
-            } else {
-                // label is fixed, set by QSTileState.build() from uiConfig
-                secondaryLabel = legacyGetModesStatus(data, resources)
-            }
+            secondaryLabel = getModesStatus(data, resources)
             contentDescription = "$label. $secondaryLabel"
             supportedActions =
                 setOf(
@@ -59,20 +53,7 @@ constructor(@ShadeDisplayAware private val resources: Resources, val theme: Reso
             expandedAccessibilityClass = Button::class
         }
 
-    private fun getLabel(data: ModesTileModel, resources: Resources): String {
-        return if (data.activeModes.size >= 2)
-            resources.getString(R.string.zen_modes_multiple_on_title, data.activeModes.size)
-        else if (data.activeModes.size == 1) data.activeModes.first()
-        else resources.getString(R.string.quick_settings_modes_label)
-    }
-
-    private fun getSecondaryLabel(data: ModesTileModel, resources: Resources): String {
-        return if (data.activeModes.size >= 2)
-            resources.getString(R.string.zen_modes_multiple_on_status)
-        else if (data.activeModes.size == 1) resources.getString(R.string.zen_mode_on) else ""
-    }
-
-    private fun legacyGetModesStatus(data: ModesTileModel, resources: Resources): String {
+    private fun getModesStatus(data: ModesTileModel, resources: Resources): String {
         val msgFormat =
             MessageFormat(resources.getString(R.string.zen_mode_active_modes), Locale.getDefault())
         val count = data.activeModes.count()

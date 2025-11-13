@@ -18,7 +18,6 @@ package com.android.systemui.qs.tiles.impl.modes.ui.mapper
 
 import android.app.Flags
 import android.graphics.drawable.TestStubDrawable
-import android.platform.test.annotations.DisableFlags
 import android.platform.test.annotations.EnableFlags
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
@@ -58,8 +57,7 @@ class ModesTileMapperTest : SysuiTestCase() {
         )
 
     @Test
-    @DisableFlags(Flags.FLAG_MODES_UI_TILE_REACTIVATES_LAST)
-    fun inactiveState_legacy() {
+    fun inactiveState() {
         val icon = TestStubDrawable("res123").asIcon()
         val model = ModesTileModel(isActivated = false, activeModes = emptyList(), icon = icon)
 
@@ -71,8 +69,7 @@ class ModesTileMapperTest : SysuiTestCase() {
     }
 
     @Test
-    @DisableFlags(Flags.FLAG_MODES_UI_TILE_REACTIVATES_LAST)
-    fun activeState_oneMode_legacy() {
+    fun activeState_oneMode() {
         val icon = TestStubDrawable("res123").asIcon()
         val model = ModesTileModel(isActivated = true, activeModes = listOf("DND"), icon = icon)
 
@@ -84,8 +81,7 @@ class ModesTileMapperTest : SysuiTestCase() {
     }
 
     @Test
-    @DisableFlags(Flags.FLAG_MODES_UI_TILE_REACTIVATES_LAST)
-    fun activeState_multipleModes_legacy() {
+    fun activeState_multipleModes() {
         val icon = TestStubDrawable("res123").asIcon()
         val model =
             ModesTileModel(
@@ -99,66 +95,6 @@ class ModesTileMapperTest : SysuiTestCase() {
         assertThat(state.activationState).isEqualTo(QSTileState.ActivationState.ACTIVE)
         assertThat(state.icon).isEqualTo(icon)
         assertThat(state.secondaryLabel).isEqualTo("3 modes are active")
-    }
-
-    @Test
-    @EnableFlags(Flags.FLAG_MODES_UI_TILE_REACTIVATES_LAST)
-    fun inactiveState() {
-        val icon = TestStubDrawable("res123").asIcon()
-        val model =
-            ModesTileModel(
-                isActivated = false,
-                activeModes = emptyList(),
-                icon = icon,
-                quickMode = TestModeBuilder.MANUAL_DND,
-            )
-
-        val state = underTest.map(config, model)
-
-        assertThat(state.activationState).isEqualTo(QSTileState.ActivationState.INACTIVE)
-        assertThat(state.icon).isEqualTo(icon)
-        assertThat(state.label).isEqualTo("Modes")
-        assertThat(state.secondaryLabel).isEqualTo("")
-    }
-
-    @Test
-    @EnableFlags(Flags.FLAG_MODES_UI_TILE_REACTIVATES_LAST)
-    fun activeState_oneMode() {
-        val icon = TestStubDrawable("res123").asIcon()
-        val model =
-            ModesTileModel(
-                isActivated = true,
-                activeModes = listOf("DND"),
-                icon = icon,
-                quickMode = TestModeBuilder.MANUAL_DND,
-            )
-
-        val state = underTest.map(config, model)
-
-        assertThat(state.activationState).isEqualTo(QSTileState.ActivationState.ACTIVE)
-        assertThat(state.icon).isEqualTo(icon)
-        assertThat(state.label).isEqualTo("DND")
-        assertThat(state.secondaryLabel).isEqualTo("On")
-    }
-
-    @Test
-    @EnableFlags(Flags.FLAG_MODES_UI_TILE_REACTIVATES_LAST)
-    fun activeState_multipleModes() {
-        val icon = TestStubDrawable("res123").asIcon()
-        val model =
-            ModesTileModel(
-                isActivated = true,
-                activeModes = listOf("Mode 1", "Mode 2", "Mode 3"),
-                icon = icon,
-                quickMode = TestModeBuilder.MANUAL_DND,
-            )
-
-        val state = underTest.map(config, model)
-
-        assertThat(state.activationState).isEqualTo(QSTileState.ActivationState.ACTIVE)
-        assertThat(state.icon).isEqualTo(icon)
-        assertThat(state.label).isEqualTo("3 Modes")
-        assertThat(state.secondaryLabel).isEqualTo("On")
     }
 
     @Test
